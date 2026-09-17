@@ -457,3 +457,167 @@ st.info(
     "영화가 10편 이상인 장르들의 총 관객 수 분포와 장르별 차이를 "
     "상자와 이상치의 위치를 비교해 한 문장으로 적어 보세요."
 )
+# ==================================================
+# 그래프 6. 개봉일 스크린 수와 총 관객 - 버블 그래프
+# ==================================================
+st.subheader("6. 개봉일 스크린 수와 총 관객의 관계 - 버블 그래프")
+
+bubble_df = df[
+    [
+        "movieNm",
+        "genre",
+        "first_scrn",
+        "total_audi",
+        "first_week_audi",
+    ]
+].copy()
+
+for column in ["first_scrn", "total_audi", "first_week_audi"]:
+    bubble_df[column] = pd.to_numeric(
+        bubble_df[column],
+        errors="coerce"
+    )
+
+bubble_df = bubble_df.dropna(
+    subset=[
+        "movieNm",
+        "genre",
+        "first_scrn",
+        "total_audi",
+        "first_week_audi",
+    ]
+)
+
+# 버블 크기에 사용할 값은 0보다 커야 함
+bubble_df = bubble_df[
+    bubble_df["first_week_audi"] > 0
+]
+
+fig_bubble = px.scatter(
+    bubble_df,
+    x="first_scrn",
+    y="total_audi",
+    size="first_week_audi",
+    color="genre",
+    hover_name="movieNm",
+    hover_data={
+        "genre": True,
+        "first_scrn": ":,.0f",
+        "total_audi": ":,.0f",
+        "first_week_audi": ":,.0f",
+    },
+    size_max=45,
+    opacity=0.65,
+    title="개봉일 스크린 수와 총 관객의 관계",
+    labels={
+        "first_scrn": "개봉일 스크린 수",
+        "total_audi": "총 관객 수",
+        "first_week_audi": "첫 주 관객",
+        "genre": "장르",
+    },
+)
+
+fig_bubble.update_traces(
+    hovertemplate=(
+        "<b>%{hovertext}</b><br>"
+        "장르: %{customdata[0]}<br>"
+        "개봉일 스크린 수: %{x:,.0f}개<br>"
+        "총 관객: %{y:,.0f}명<br>"
+        "첫 주 관객: %{marker.size:,.0f}명"
+        "<extra></extra>"
+    )
+)
+
+fig_bubble.update_layout(
+    height=650,
+    margin=dict(t=70, b=50, l=20, r=20),
+    xaxis_title="개봉일 스크린 수",
+    yaxis_title="총 관객 수",
+    legend_title_text="장르",
+)
+
+st.plotly_chart(
+    fig_bubble,
+    use_container_width=True,
+    config={"displayModeBar": False},
+)
+
+
+# 그래프 아래 설명 영역
+st.markdown("---")
+st.markdown("### 이 그래프로 알 수 있는 것")
+st.info(
+    "개봉일 스크린 수와 총 관객의 관계를 살펴보면서 "
+    "버블 크기로 표현된 첫 주 관객 수까지 함께 비교해 보세요."
+)
+# ==================================================
+# 그래프 7. 제작 국가 → 장르 선버스트
+# ==================================================
+st.subheader("7. 제작 국가와 장르의 구성")
+
+sunburst_df = df[
+    ["nation", "genre"]
+].copy()
+
+sunburst_df["nation"] = (
+    sunburst_df["nation"]
+    .fillna("미상")
+    .astype(str)
+    .str.strip()
+)
+
+sunburst_df["genre"] = (
+    sunburst_df["genre"]
+    .fillna("미상")
+    .astype(str)
+    .str.strip()
+)
+
+sunburst_df = sunburst_df[
+    (sunburst_df["nation"] != "") &
+    (sunburst_df["genre"] != "")
+]
+
+# 국가 → 장르 조합별 영화 편수
+sunburst_counts = (
+    sunburst_df
+    .groupby(["nation", "genre"])
+    .size()
+    .reset_index(name="count")
+)
+
+fig_sunburst = px.sunburst(
+    sunburst_counts,
+    path=["nation", "genre"],
+    values="count",
+    title="제작 국가 → 장르별 영화 편수",
+)
+
+fig_sunburst.update_traces(
+    hovertemplate=(
+        "<b>%{label}</b><br>"
+        "영화 편수: %{value}편"
+        "<extra></extra>"
+    ),
+    textinfo="label",
+)
+
+fig_sunburst.update_layout(
+    height=650,
+    margin=dict(t=70, b=30, l=20, r=20),
+)
+
+st.plotly_chart(
+    fig_sunburst,
+    use_container_width=True,
+    config={"displayModeBar": False},
+)
+
+
+# 그래프 아래 설명 영역
+st.markdown("---")
+st.markdown("### 이 그래프로 알 수 있는 것")
+st.info(
+    "제작 국가별 영화 구성과 그 안에서 어떤 장르의 영화가 많은지를 "
+    "영화 편수의 크기로 비교해 보세요."
+)
