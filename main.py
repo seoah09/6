@@ -378,3 +378,82 @@ st.info(
     "개봉일 스크린 수와 총 관객 수가 어떤 관계를 보이는지 "
     "점들의 분포와 장르별 색을 살펴보고 한 문장으로 적어 보세요."
 )
+# ==================================================
+# 그래프 5. 장르별 총 관객 수 상자 그림
+# ==================================================
+st.subheader("5. 장르별 총 관객 수 분포")
+
+box_df = df[
+    ["movieNm", "genre", "total_audi"]
+].copy()
+
+box_df["total_audi"] = pd.to_numeric(
+    box_df["total_audi"],
+    errors="coerce"
+)
+
+box_df = box_df.dropna(
+    subset=["movieNm", "genre", "total_audi"]
+)
+
+# 영화가 10편 이상인 장르만 선택
+genre_movie_counts = box_df["genre"].value_counts()
+
+selected_genres = genre_movie_counts[
+    genre_movie_counts >= 10
+].index
+
+box_df = box_df[
+    box_df["genre"].isin(selected_genres)
+]
+
+
+fig_box = px.box(
+    box_df,
+    x="genre",
+    y="total_audi",
+    color="genre",
+    points="outliers",
+    hover_name="movieNm",
+    hover_data={
+        "genre": False,
+        "total_audi": ":,.0f",
+    },
+    title="영화가 10편 이상인 장르의 총 관객 수 분포",
+    labels={
+        "genre": "장르",
+        "total_audi": "총 관객 수",
+    },
+)
+
+# 이상치에만 영화명이 표시되도록 설정
+fig_box.update_traces(
+    hovertemplate=(
+        "<b>%{hovertext}</b><br>"
+        "총 관객: %{y:,.0f}명"
+        "<extra></extra>"
+    )
+)
+
+fig_box.update_layout(
+    height=600,
+    margin=dict(t=70, b=50, l=20, r=20),
+    xaxis_title="장르",
+    yaxis_title="총 관객 수",
+    showlegend=False,
+)
+
+st.plotly_chart(
+    fig_box,
+    use_container_width=True,
+    config={"displayModeBar": False},
+)
+
+
+# 그래프 아래 설명 영역
+st.markdown("---")
+st.markdown("### 이 그래프로 알 수 있는 것")
+st.info(
+    "영화가 10편 이상인 장르들의 총 관객 수 분포와 장르별 차이를 "
+    "상자와 이상치의 위치를 비교해 한 문장으로 적어 보세요."
+)
