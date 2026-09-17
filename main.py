@@ -303,3 +303,78 @@ st.info(
     f"구간에 몰려 있으며, 가장 관객이 많은 영화는 "
     f"**{max_movie_name}**으로 총 **{max_audience:,}명**의 관객을 기록했습니다."
 )
+# ==================================================
+# 그래프 4. 개봉일 스크린 수와 총 관객의 관계
+# ==================================================
+st.subheader("4. 개봉일 스크린 수와 총 관객의 관계")
+
+scatter_df = df[
+    ["movieNm", "genre", "first_scrn", "total_audi"]
+].copy()
+
+scatter_df["first_scrn"] = pd.to_numeric(
+    scatter_df["first_scrn"],
+    errors="coerce"
+)
+scatter_df["total_audi"] = pd.to_numeric(
+    scatter_df["total_audi"],
+    errors="coerce"
+)
+
+scatter_df = scatter_df.dropna(
+    subset=["movieNm", "genre", "first_scrn", "total_audi"]
+)
+
+fig_scatter = px.scatter(
+    scatter_df,
+    x="first_scrn",
+    y="total_audi",
+    color="genre",
+    hover_name="movieNm",
+    hover_data={
+        "first_scrn": ":,.0f",
+        "total_audi": ":,.0f",
+        "genre": True,
+    },
+    title="개봉일 스크린 수와 총 관객의 관계",
+    labels={
+        "first_scrn": "개봉일 스크린 수",
+        "total_audi": "총 관객 수",
+        "genre": "장르",
+    },
+    opacity=0.75,
+)
+
+fig_scatter.update_traces(
+    marker=dict(size=9),
+    hovertemplate=(
+        "<b>%{hovertext}</b><br>"
+        "장르: %{customdata[2]}<br>"
+        "개봉일 스크린 수: %{x:,.0f}개<br>"
+        "총 관객: %{y:,.0f}명"
+        "<extra></extra>"
+    ),
+)
+
+fig_scatter.update_layout(
+    height=600,
+    margin=dict(t=70, b=50, l=20, r=20),
+    xaxis_title="개봉일 스크린 수",
+    yaxis_title="총 관객 수",
+    legend_title_text="장르",
+)
+
+st.plotly_chart(
+    fig_scatter,
+    use_container_width=True,
+    config={"displayModeBar": False},
+)
+
+
+# 그래프 아래 설명 영역
+st.markdown("---")
+st.markdown("### 이 그래프로 알 수 있는 것")
+st.info(
+    "개봉일 스크린 수와 총 관객 수가 어떤 관계를 보이는지 "
+    "점들의 분포와 장르별 색을 살펴보고 한 문장으로 적어 보세요."
+)
