@@ -621,3 +621,74 @@ st.info(
     "제작 국가별 영화 구성과 그 안에서 어떤 장르의 영화가 많은지를 "
     "영화 편수의 크기로 비교해 보세요."
 )
+# ==================================================
+# 그래프 8. 10위권에 오래 머문 영화는 총 관객도 많은가
+# ==================================================
+st.subheader("8. 10위권에 오래 머문 영화는 총 관객도 많은가")
+
+top10_df = df[
+    ["movieNm", "days_in_top10", "total_audi"]
+].copy()
+
+top10_df["days_in_top10"] = pd.to_numeric(
+    top10_df["days_in_top10"],
+    errors="coerce"
+)
+
+top10_df["total_audi"] = pd.to_numeric(
+    top10_df["total_audi"],
+    errors="coerce"
+)
+
+top10_df = top10_df.dropna(
+    subset=["movieNm", "days_in_top10", "total_audi"]
+)
+
+fig_top10 = px.scatter(
+    top10_df,
+    x="days_in_top10",
+    y="total_audi",
+    hover_name="movieNm",
+    hover_data={
+        "days_in_top10": ":,.0f",
+        "total_audi": ":,.0f",
+    },
+    title="10위권에 오래 머문 영화는 총 관객도 많은가",
+    labels={
+        "days_in_top10": "10위권에 머문 날수",
+        "total_audi": "총 관객 수",
+    },
+    opacity=0.75,
+)
+
+fig_top10.update_traces(
+    marker=dict(size=9),
+    hovertemplate=(
+        "<b>%{hovertext}</b><br>"
+        "10위권에 머문 날수: %{x:,.0f}일<br>"
+        "총 관객: %{y:,.0f}명"
+        "<extra></extra>"
+    ),
+)
+
+fig_top10.update_layout(
+    height=600,
+    margin=dict(t=70, b=50, l=20, r=20),
+    xaxis_title="10위권에 머문 날수",
+    yaxis_title="총 관객 수",
+)
+
+st.plotly_chart(
+    fig_top10,
+    use_container_width=True,
+    config={"displayModeBar": False},
+)
+
+
+# 그래프 아래 설명 영역
+st.markdown("---")
+st.markdown("### 이 그래프로 알 수 있는 것")
+st.info(
+    "10위권에 머문 날수와 총 관객 수가 어떤 관계를 보이는지 "
+    "점들의 분포를 살펴보고 한 문장으로 적어 보세요."
+)
